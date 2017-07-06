@@ -1,1 +1,6 @@
-Modern No. 20, 14.2pt, style=Bold(none)(none)
+for
+if
+while
+do
+string
+int

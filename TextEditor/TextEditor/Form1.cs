@@ -14,7 +14,7 @@ namespace TextEditor
     public partial class Form1 : Form
     {
         int indexatstart = 0, index = 0, length = 0, length_pri = 0, index_pri = 0;
-        string Word = " ", Filename,Filepath, Filename_Font = Path.GetFullPath(@"C: \Users\Sohaib\Documents\Visual Studio 2017\Projects\TextEditor\TextEditor\Font.txt");
+        string Word = " ", Filename,Filepath, Filename_Syntaxwords = Path.GetFullPath(@"C: \Users\Sohaib\Documents\Visual Studio 2017\Projects\TextEditor\TextEditor\Font.txt");
         public Form1()
         {
             InitializeComponent();
@@ -62,12 +62,12 @@ namespace TextEditor
         {
             var cvt = new FontConverter();
             string Fontfamily = cvt.ConvertToString(TextFeild.SelectionFont);
-            File.SetAttributes(Filename_Font, FileAttributes.Normal);
-            File.WriteAllText(Filename_Font, Fontfamily);
+            File.SetAttributes(Filename_Syntaxwords, FileAttributes.Normal);
+            File.WriteAllText(Filename_Syntaxwords, Fontfamily);
             Fontfamily = cvt.ConvertToString(TextFeild);
-            File.AppendAllText(Filename_Font, Fontfamily);
+            File.AppendAllText(Filename_Syntaxwords, Fontfamily);
             Fontfamily = cvt.ConvertToString(TextFeild.SelectionLength);
-            File.AppendAllText(Filename_Font, Fontfamily);
+            File.AppendAllText(Filename_Syntaxwords, Fontfamily);
             Application.Exit();
             
             //Font f = cvt.ConvertFromString(s) as Font;
@@ -111,7 +111,7 @@ namespace TextEditor
                 Filepath = openFileDialog1.FileName;
                 Filename = Path.GetFileName(Filepath);
                 this.Text = Filename;
-                string Fontfamily = File.ReadAllText(Filename_Font);
+                string Fontfamily = File.ReadAllText(Filename_Syntaxwords);
                 //Font f = cvt.ConvertFromString(Fontfamily) as Font;
                 //TextFeild.SelectionFont = f;
             }
@@ -202,7 +202,13 @@ namespace TextEditor
                     index_pri = Text.IndexOf(Word, index + length);
                     if (index_pri != -1)
                     {
-                            TextFeild.Select(index_pri, length_pri);
+                        string nxtchr = "";
+                        if (index_pri + length_pri + 1 < Text.Length)
+                            nxtchr = Text.Substring(index_pri + length_pri, 1);
+                        else
+                            nxtchr = " ";
+                        TextFeild.Select(index_pri, length_pri);
+                        if ((nxtchr == " " || nxtchr == "\n") && Text.Substring(index_pri - 1, 1) == " ")
                             TextFeild.SelectionBackColor = Color.LightGray;
                     }
                     length = length_pri; index = index_pri;
@@ -371,8 +377,14 @@ namespace TextEditor
                         index_pri = Text.IndexOf(Word, index + length);
                         if (index_pri != -1)
                         {
+                            string nxtchr = "";
+                            if (index_pri + length_pri + 1 < Text.Length)
+                                nxtchr = Text.Substring(index_pri + length_pri, 1);
+                            else
+                                nxtchr = " ";
                             TextFeild.Select(index_pri, length_pri);
-                            TextFeild.SelectionBackColor = Color.LightGray;
+                            if ((nxtchr == " " || nxtchr == "\n") && Text.Substring(index_pri - 1, 1) == " ")
+                                TextFeild.SelectionBackColor = Color.LightGray;
                         }
                         length = length_pri; index = index_pri;
                     }
@@ -380,7 +392,7 @@ namespace TextEditor
                     TextFeild.SelectionLength = 0;
                 }
             }
-            else 
+            else if (e.KeyCode != Keys.Control && e.KeyCode != Keys.Back)
             {
                 int length_pri = 0, index_pri = 0;
                 Text = TextFeild.Text;
@@ -397,8 +409,61 @@ namespace TextEditor
                         {
                             TextFeild.Select(index_pri, length_pri);
                             TextFeild.SelectionBackColor = Color.White;
+                            TextFeild.SelectionColor = Color.Black;
                         }
                         length = length_pri; index = index_pri;
+                    }
+                }
+                if (e.KeyCode == Keys.Space || e.KeyCode == Keys.Enter)
+                {
+                    int nextindex = 0;
+                    string Syntaxwords = File.ReadAllText(Filename_Syntaxwords), iterator = "" , Word = "";
+                    index = 0;
+                    length = 0;
+                    while (nextindex < Syntaxwords.Length)
+                    {
+                        length = 0;
+                        if (index < Syntaxwords.Length)
+                            iterator = Syntaxwords.Substring(index, 1);
+                        while (iterator != "\n" && iterator != "\r")
+                        {
+                            length++;
+                            index++;
+                            if (index < Syntaxwords.Length)
+                                iterator = Syntaxwords.Substring(index, 1);
+                            else
+                                iterator = "\n";
+                        }
+                        nextindex = index;
+                        index -= length;
+                        if (index < Syntaxwords.Length)
+                            Word = Syntaxwords.Substring(index, length);
+                        length_pri = 0; index_pri = 0;
+                        Text = TextFeild.Text;
+                        if (Text.Contains(Word) && Word != "")
+                        {
+                            index = 0;
+                            length = 0;
+                            while (index_pri != -1)
+                            {
+                                length_pri = 0; index_pri = 0;
+                                length_pri = Word.Length;
+                                index_pri = Text.IndexOf(Word, index + length);
+                                if (index_pri != -1)
+                                {
+                                    string nxtchr = "";
+                                    if (index_pri + length_pri < Text.Length)
+                                        nxtchr = Text.Substring(index_pri + length_pri, 1);
+                                    else
+                                        nxtchr = " ";
+                                    TextFeild.Select(index_pri, length_pri);
+                                    if ((nxtchr == " " || nxtchr == "\n") && Text.Substring(index_pri - 1, 1) == " ")
+                                    TextFeild.SelectionColor = Color.Blue;
+                                }
+                                length = length_pri; index = index_pri;
+                            }
+                        }
+                        index = nextindex + 2;
                     }
                 }
                 TextFeild.SelectionStart = indexatstart;

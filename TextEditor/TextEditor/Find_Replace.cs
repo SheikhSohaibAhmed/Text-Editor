@@ -68,8 +68,14 @@ namespace TextEditor
                     index_pri = Text.IndexOf(Word, index + length);
                     if (index_pri != -1)
                     {
+                        string nxtchr = "";
+                        if (index_pri + length_pri + 1 < Text.Length)
+                            nxtchr = Text.Substring(index_pri + length_pri, 1);
+                        else
+                            nxtchr = " ";
                         mainForm.TextFeild.Select(index_pri, length_pri);
-                        mainForm.TextFeild.SelectionBackColor = Color.LightBlue;
+                        if ((nxtchr == " " || nxtchr == "\n") && Text.Substring(index_pri - 1, 1) == " ")
+                            mainForm.TextFeild.SelectionBackColor = Color.LightBlue;
                     }
                     length = length_pri; index = index_pri;
                 }
